@@ -45,8 +45,8 @@ All other rights reserved.
 				</CheckBox>
 			</DataTemplate>
 
-            <HierarchicalDataTemplate ItemsSource="{Binding Stack}" DataType="{x:Type infrastructure:TrackedEvent}">
-				<Grid x:Name="Grid" Background="Transparent">
+            <HierarchicalDataTemplate ItemsSource="{Binding Event.Stack}" DataType="{x:Type views:TrackedEventContainer}">
+				<Grid x:Name="Grid" Background="Transparent" DataContext="{Binding Event}">
 					<Grid.ColumnDefinitions>
 						<ColumnDefinition Width="*"/>
 						<ColumnDefinition Width="*"/>
@@ -328,18 +328,22 @@ All other rights reserved.
 		</Button.ToolTip>
 	</Button>
 
-	<TreeView
+    <TreeView
 		x:Name="EventTree"
 	    Style="{x:Null}"
 		SelectedItemChanged="EventTree_SelectedItemChanged"
 		Grid.Row="1"
 		ItemsSource="{Binding ElementName=Events, Path=InterestingEvents}"
 		HorizontalContentAlignment="Stretch">
-		<TreeView.ItemContainerStyle>
+        <TreeView.InputBindings>
+            <KeyBinding Key="C" Modifiers="Ctrl" Command="{x:Static views:EventsView.CopySelectedEventsToClipboardCommand}"/>
+        </TreeView.InputBindings>
+        <TreeView.ItemContainerStyle>
 			<Style BasedOn="{StaticResource ProperTreeViewItemStyle}" TargetType="{x:Type TreeViewItem}">
 				<Setter Property="HorizontalContentAlignment" Value="Stretch"/>
 				<Setter Property="HorizontalAlignment" Value="Stretch"/>
-				<Style.Triggers>
+                <Setter Property="IsSelected" Value="{Binding IsSelected}"/>
+                <Style.Triggers>
 					<DataTrigger Binding="{Binding Handled}" Value="True">
 						<Setter Property="Background" Value="LightGreen"/>
 					</DataTrigger>

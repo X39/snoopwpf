@@ -10,18 +10,40 @@ namespace Snoop.Views
     using System.Collections.Generic;
     using System.Collections.ObjectModel;
     using System.ComponentModel;
+    using System.Linq;
+    using System.Text;
     using System.Windows;
     using System.Windows.Controls;
     using System.Windows.Data;
     using System.Windows.Input;
     using System.Windows.Media;
     using JetBrains.Annotations;
+    using Snoop.Converters;
     using Snoop.Infrastructure;
     using Snoop.Windows;
+
+    public class TrackedEventContainer
+    {
+        public TrackedEvent Event { get; set; }
+
+        public bool IsSelected { get; set; }
+
+        public static TrackedEventContainer ToTrackedEventContainer(TrackedEvent trackedEvent)
+        {
+            return new TrackedEventContainer { Event = trackedEvent };
+        }
+
+        public static implicit operator TrackedEventContainer(TrackedEvent trackedEvent)
+        {
+            return ToTrackedEventContainer(trackedEvent);
+        }
+    }
 
     public partial class EventsView : INotifyPropertyChanged
     {
         public static readonly RoutedCommand ClearCommand = new RoutedCommand(nameof(ClearCommand), typeof(EventsView));
+
+        public static readonly RoutedCommand CopySelectedEventsToClipboardCommand = new RoutedCommand(nameof(CopySelectedEventsToClipboardCommand), typeof(EventsView));
 
         public EventsView()
         {
@@ -48,15 +70,19 @@ namespace Snoop.Views
             }
 
             this.CommandBindings.Add(new CommandBinding(ClearCommand, this.HandleClear));
+            this.CommandBindings.Add(new CommandBinding(ClearCommand, this.HandleCopySelectedEventsToClipboard));
         }
 
+        #region Collection: InterestingEvents (System.IEnumerable)
         public IEnumerable InterestingEvents
         {
             get { return this.interestingEvents; }
         }
 
-        private readonly ObservableCollection<TrackedEvent> interestingEvents = new ObservableCollection<TrackedEvent>();
+        private readonly ObservableCollection<TrackedEventContainer> interestingEvents = new ObservableCollection<TrackedEventContainer>();
+        #endregion
 
+        #region Property: MaxEventsDisplayed (System.Int32)
         public int MaxEventsDisplayed
         {
             get { return this.maxEventsDisplayed; }
@@ -83,14 +109,7 @@ namespace Snoop.Views
         }
 
         private int maxEventsDisplayed = 100;
-
-        private void EnforceInterestingEventsLimit()
-        {
-            while (this.interestingEvents.Count > this.maxEventsDisplayed)
-            {
-                this.interestingEvents.RemoveAt(0);
-            }
-        }
+        #endregion
 
         public object AvailableEvents
         {
@@ -111,6 +130,14 @@ namespace Snoop.Views
 
                 cvs.View.Refresh();
                 return cvs.View;
+            }
+        }
+
+        private void EnforceInterestingEventsLimit()
+        {
+            while (this.interestingEvents.Count > this.maxEventsDisplayed)
+            {
+                this.interestingEvents.RemoveAt(0);
             }
         }
 
@@ -138,6 +165,10 @@ namespace Snoop.Views
                     this.RunInDispatcherAsync(action);
                 }
             }
+        }
+
+        private void HandleCopySelectedEventsToClipboard(object sender, ExecutedRoutedEventArgs e)
+        {
         }
 
         private void HandleClear(object sender, ExecutedRoutedEventArgs e)
