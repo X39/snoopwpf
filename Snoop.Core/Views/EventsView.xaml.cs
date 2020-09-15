@@ -169,6 +169,41 @@ namespace Snoop.Views
 
         private void HandleCopySelectedEventsToClipboard(object sender, ExecutedRoutedEventArgs e)
         {
+            var builder = new StringBuilder();
+
+            foreach (var container in this.interestingEvents)
+            {
+                if (!container.IsSelected)
+                {
+                    continue;
+                }
+
+                var eventsArgType = container.Event.EventArgs.GetType();
+                var handledByType = container.Event.HandledBy.GetType();
+                int spaceIndex = 0;
+
+                builder.AppendLine($"{new string(' ', spaceIndex * 4)}{eventsArgType.FullName} handled by {handledByType.FullName} ({container.Event.Handled}):");
+
+                {
+                    spaceIndex++;
+                    builder.AppendLine($"{new string(' ', spaceIndex * 4)}Handled By:");
+
+                    {
+                        spaceIndex++;
+                        builder.AppendLine(ObjectToStringConverter.Instance.Convert(container.Event.HandledBy).Replace("\n", $"\n{new string(' ', spaceIndex * 4)}"));
+                        spaceIndex--;
+                    }
+
+                    builder.AppendLine($"{new string(' ', spaceIndex * 4)}Args:");
+                    {
+                        spaceIndex++;
+                        builder.AppendLine(ObjectToStringConverter.Instance.Convert(container.Event.EventArgs).Replace("\n", $"\n{new string(' ', spaceIndex * 4)}"));
+                        spaceIndex--;
+                    }
+
+                    spaceIndex--;
+                }
+            }
         }
 
         private void HandleClear(object sender, ExecutedRoutedEventArgs e)
